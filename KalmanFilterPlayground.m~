@@ -35,10 +35,9 @@ vm = v_true + sqrt(varn)*randn(size(t));
 x_true = x+ v_true .* t + t.^2*a;
 xm = x_true+sqrt(varn)*randn(size(t));
 
-a_true = a * zeros(size(t));
-am = a_true + sqrt(varn)*randn(size(t));
+am = a+sqrt(varn)*randn(size(t));
 
-xm_ = [xm; vm; am];
+xm_ = [xm; vm; a * ones(size(t))];
 
 % Initial state of the Kalman filter 
 
@@ -51,7 +50,7 @@ Qp = diag([1E6 1E4 1E2]);
 % W = part of Process Noise Covariance matrix
 
 % H = [1 0];
-H = [1 1 1];
+H = [1 1 0];
 
 % F = [1 T; 0 1];
 F = [1 T T ^2; 0 1 T; 0 0 1];
@@ -132,9 +131,9 @@ hold
 
 figure(12)
 
-plot (t, a_true);
+plot (t, a .* ones(size(t)));
 hold
-plot (t, am, 'x')
-plot (t(1:end-1), mean_KF(3,:), 'o')
+% plot (t, vm, 'x')
+plot (t(1:end-1), mean_KF(2,:), 'o')
 
 hold
