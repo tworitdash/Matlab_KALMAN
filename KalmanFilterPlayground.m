@@ -3,11 +3,8 @@
 
 % Initial position and speed of an object
 clear;
-close all;
 x = 0;
-% x = [0 0 0.1 0.1];
 v = 50;
-a = 2;
 
 % Measurement Interval
 
@@ -21,43 +18,33 @@ varw = 10^2;
 
 K = 100
 
-
 t = 0:T:K*T;
 
 % Generate a set of position measurements
 
-
-
-% xm = x_true+sqrt(varn*x_true).*randn(size(t));
-v_true = v + a*t;
-vm = v_true + sqrt(varn)*randn(size(t));
-
-x_true = x+ v_true .* t + t.^2*a;
+x_true = x+t*v;
 xm = x_true+sqrt(varn)*randn(size(t));
 
-a_true = a * zeros(size(t));
-am = a_true + sqrt(varn)*randn(size(t));
+%xm = x_true+sqrt(varn*x_true).*randn(size(t));
 
-xm_ = [xm; vm; am];
+
 
 % Initial state of the Kalman filter 
 
-sp = [10; 0; 0];
-Qp = diag([1E6 1E4 1E2]);
+sp = [100; 0];
+Qp = diag([1E6 1E4]);
 
 % Definition of system matrices: 
 % H = Observation matrix, 
 % F = System Dynamics Matrix
 % W = part of Process Noise Covariance matrix
 
-% H = [1 0];
-H = [1 1 1];
+H = [1 0];
 
-% F = [1 T; 0 1];
-F = [1 T T ^2; 0 1 T; 0 0 1];
+F = [1 T; 0 1];
 %C = [T^2/2; T];
-%W = [T^3/3 T^2/2; T^2/2 T];
-W = [T^6/9 T^5/6 T^4/4; T^5/6 T^4/5 T^3/3; T^4/3 T^3/2 T^2];
+W = [T^3/3 T^2/2; T^2/2 T];
+
 for k=1:K
     
     k
@@ -66,16 +53,13 @@ for k=1:K
     G = Qp*H'*inv(H*Qp*H' + varn);
 %    G = Qp*H'*inv(H*Qp*H' + x_true(k)*varn);
     
-    sf = sp + G.*(xm_(:, k)-H*sp);
-%     sfv = sp + G*(vm(k)-H*sp);
-    Qf = (eye(3)-G*H)*Qp;
+    sf = sp + G*(xm(k)-H*sp);
+    Qf = (eye(2)-G*H)*Qp;
     
 
-%    mean_KF(:,k) = sf;
-   mean_KF(:, k) = sf;
+   mean_KF(:,k) = sf;
    
-%    sigmas_KF(:,k) = sqrt(diag(Qf));
-   sigmas_KF(:, k) = sqrt(diag(Qf));
+   sigmas_KF(:,k) = sqrt(diag(Qf));
    
    figure(1)
    plot ((1:k)*T, mean_KF(1,1:k)-x_true(1:k), 'r+')
@@ -92,12 +76,11 @@ for k=1:K
    figure(2)
    plot ((1:k)*T, mean_KF(2,1:k)-v, 'r+')
    hold 
-   plot ((1:k)*T, vm(1:k)-v, 'b+')
    plot ((1:k)*T, 3*sigmas_KF(2,1:k), 'r-.')
    plot ((1:k)*T, -3*sigmas_KF(2,1:k), 'r-.')
    hold
    title ('Velocity estimation error of KF')
-   legend ('KF-error', 'measurements', '3-sigma CR-bound')
+   legend ('KF-error', '3-sigma CR-bound')
    
    axis ([0 K*T -3*sigmas_KF(2,1) 3*sigmas_KF(2,1)])
    
@@ -109,32 +92,14 @@ for k=1:K
     Qp = F*Qf*F' + W*varw;
      
     
-%     pause
+    
 end
 
 figure(10)
 
-plot (t, x_true)
+plot (x_true)
 hold
-plot (t, xm, 'x')
-plot (t(1:end-1), mean_KF(1,:), 'o')
-
-hold
-
-figure(11)
-
-plot (t, v_true);
-hold
-plot (t, vm, 'x')
-plot (t(1:end-1), mean_KF(2,:), 'o')
-
-hold
-
-figure(12)
-
-plot (t, a_true);
-hold
-plot (t, am, 'x')
-plot (t(1:end-1), mean_KF(3,:), 'o')
+plot (xm, 'x')
+plot (mean_KF(1,:), 'o')
 
 hold

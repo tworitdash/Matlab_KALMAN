@@ -4,7 +4,6 @@
 % Initial position and speed of an object
 clear;
 x = 0;
-% x = [0 0 0.1 0.1];
 v = 50;
 
 % Measurement Interval
@@ -26,15 +25,13 @@ t = 0:T:K*T;
 x_true = x+t*v;
 xm = x_true+sqrt(varn)*randn(size(t));
 
-% xm = x_true+sqrt(varn*x_true).*randn(size(t));
+%xm = x_true+sqrt(varn*x_true).*randn(size(t));
 
-vm = v + sqrt(varn)*randn(size(t));
 
-xm_ = [xm; vm];
 
 % Initial state of the Kalman filter 
 
-sp = [100; 20];
+sp = [100; 0];
 Qp = diag([1E6 1E4]);
 
 % Definition of system matrices: 
@@ -42,8 +39,7 @@ Qp = diag([1E6 1E4]);
 % F = System Dynamics Matrix
 % W = part of Process Noise Covariance matrix
 
-% H = [1 0];
-H = [1 1];
+H = [1 0];
 
 F = [1 T; 0 1];
 %C = [T^2/2; T];
@@ -57,8 +53,7 @@ for k=1:K
     G = Qp*H'*inv(H*Qp*H' + varn);
 %    G = Qp*H'*inv(H*Qp*H' + x_true(k)*varn);
     
-    sf = sp + G*(xm_(:, k)-H*sp);
-%     sfv = sp + G*(vm(k)-H*sp);
+    sf = sp + G*(xm(k)-H*sp);
     Qf = (eye(2)-G*H)*Qp;
     
 
@@ -97,23 +92,14 @@ for k=1:K
     Qp = F*Qf*F' + W*varw;
      
     
-%     pause
+    
 end
 
 figure(10)
 
-plot (t, x_true)
+plot (x_true)
 hold
-plot (t, xm, 'x')
-plot (t(1:end-1), mean_KF(1,:), 'o')
-
-hold
-
-figure(11)
-
-plot (t, v .* ones(size(t)));
-hold
-plot (t, vm, 'x')
-plot (t(1:end-1), mean_KF(2,:), 'o')
+plot (xm, 'x')
+plot (mean_KF(1,:), 'o')
 
 hold
